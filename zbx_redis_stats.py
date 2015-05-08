@@ -2,7 +2,7 @@
 
 import sys, redis, json, re, struct, time, socket, argparse
 
-parser = argparse.ArgumentParser(description='Zabbix Redis status script')
+parser = argparse.ArgumentParser(description='Zabbix Redis statuls script')
 parser.add_argument('redis_hostname',nargs='?')
 parser.add_argument('metric',nargs='?')
 parser.add_argument('db',default='none',nargs='?')
@@ -97,9 +97,8 @@ def main():
                 print(client.llen(args.db))
 
             def llensum():
-                keys = client.keys('*')
                 llensum = 0
-                for key in keys:
+                for key in client.scan_iter('*'):
                     if client.type(key) == 'list':
                         llensum += client.llen(key)
                 print(llensum)
@@ -130,9 +129,8 @@ def main():
         for i in server_info:
             a.append(Metric(redis_hostname, ('redis[%s]' % i), server_info[i]))
 
-        keys = client.keys('*')
         llensum = 0
-        for key in keys:
+        for key in client.scan_iter('*'):
             if client.type(key) == 'list':
                 llensum += client.llen(key)
         a.append(Metric(redis_hostname, 'redis[llenall]', llensum))
